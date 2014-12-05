@@ -111,14 +111,55 @@ sequence_'7 ms = foldr (>>) (return ()) ms
 --
 -- recursive defn of foldl
 --
--- foldl :: (a -> b -> a) -> a -> [b] -> a
--- foldl f a [] = a
--- foldl f a (x:xs) = foldl f (f a x) xs
+-- foldl            :: (a -> b -> a) -> a -> [b] -> a
+-- foldl f x []     =  x
+-- foldl f x (y:ys) =  foldl f (f x y) ys
 
-foldLeftM :: Monad m => (a -> b -> m a) -> a -> [b] -> m a
-foldLeftM f a [] = return a
-foldLeftM f a (x:xs) = do z <- x
-                          zs <- foldLeftM f a xs
-                          return (z:zs)
+foldLeftM            :: Monad m => (a -> b -> m a) -> a -> [b] -> m a
+foldLeftM f x []     =  return x
+foldLeftM f x (y:ys) =  do z  <- f x y
+                           zs <- foldLeftM f z ys
+                           return zs
 
+--
+-- recursive defn of foldr
+--
+-- foldr            :: (a -> b -> b) -> b -> [a] -> b
+-- foldr f x []     =  x
+-- foldr f x (y:ys) =  f y (foldr f x ys)
 
+foldRightM            :: Monad m => (a -> b -> m b) -> b -> [a] -> m b
+foldRightM f x []     =  return x
+foldRightM f x (y:ys) = do zs <- foldRightM f x ys
+                           z  <- f y zs
+                           return z
+--
+-- liftM :: Monad m => (a -> b) -> m a -> m b
+--
+
+-- seems to work
+liftM'1 :: Monad m => (a -> b) -> m a -> m b
+liftM'1 f m
+  = do x <- m
+       return (f x)
+
+-- Couldn't match type `IO' with `[]'
+-- liftM'2 f m = m >>= \ a -> f a
+
+-- seems to work
+liftM'3 f m = m >>= \ a -> return (f a)
+
+-- Couldn't match expected type `[Char]' with actual type `IO String'
+-- liftM'4 f m = return (f m)
+
+-- doubles something
+-- liftM'5 f m = m >>= \ a -> m >>= \ b -> return (f a)
+
+-- doubles something else
+-- liftM'6 f m = m >>= \ a -> m >>= \ b -> return (f b)
+
+-- Couldn't match expected type `[Char]' with actual type `IO String'
+-- liftM'7 f m = mapM f [m]
+
+-- Couldn't match expected type `[Char] -> a0'
+-- liftM'8 f m = m >> \ a -> return (f a)
