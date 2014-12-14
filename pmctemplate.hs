@@ -18,15 +18,12 @@ instance Show Action where
 -- Ex. 0
 -- ===================================
 
-unwrapC :: Concurrent a -> ((a -> Action) -> Action)
-unwrapC (Concurrent x) = x
-
 -- *Lab5> :t Stop
 -- Stop :: Action
 -- *Lab5> :t const Stop
 -- const Stop :: b -> Action
 action :: Concurrent a -> Action
-action = \ x -> unwrapC x (const Stop)
+action = \ (Concurrent x) -> x (const Stop)
 
 
 -- ===================================
@@ -42,18 +39,20 @@ stop = Concurrent (\ _ -> Stop)
 -- ===================================
 
 atom :: IO a -> Concurrent a
-atom = \ c -> Concurrent (\ k -> Atom (fmap k c))
+-- atom = \ c -> Concurrent (\ k -> Atom (fmap k c))
+atom k = Concurrent $ \ a -> Atom (k >>= \ c -> return (a c))
 
 -- ===================================
 -- Ex. 3
 -- ===================================
 
 fork :: Concurrent a -> Concurrent ()
-fork = \ c -> Concurrent (\ k -> Fork (action c) (k ()))
+fork = \ a -> Concurrent (\ k -> Fork (action a) (k ()))
 
 
 par :: Concurrent a -> Concurrent a -> Concurrent a
-par m1 m2 = Concurrent (\ k -> Fork (action m1) (action m2))
+par a1 a2 = Concurrent (\ k -> Fork (action a1) (action a2))
+
 
 
 -- ===================================
@@ -61,8 +60,8 @@ par m1 m2 = Concurrent (\ k -> Fork (action m1) (action m2))
 -- ===================================
 
 instance Monad Concurrent where
-    (Concurrent f) >>= g = error "You have to implement >>="
-    return x = Concurrent (\c -> c x)
+    (Concurrent f) >>= g = Concurrent $ \ c -> f (\ k -> case g k of (Concurrent t) -> t c)
+    return x = Concurrent (\ c -> c x)
 
 
 -- ===================================
@@ -70,7 +69,11 @@ instance Monad Concurrent where
 -- ===================================
 
 roundRobin :: [Action] -> IO ()
-roundRobin = error "You have to implement roundRobin"
+roundRobin = \ as -> case as of
+                        [] -> return ()
+                        (Atom a : xs) -> a >>= \inp -> roundRobin (xs ++ [inp])
+                        (Fork a1 a2 : xs) -> roundRobin (xs ++ [a1,a2])
+                        (Stop : xs) -> roundRobin xs
 
 -- ===================================
 -- Tests
