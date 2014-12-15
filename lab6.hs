@@ -6,6 +6,9 @@ module Lab6 where
 
 data Rose a = a :> [Rose a] deriving Show
 
+-- *Lab6> :t (:>)
+-- (:>) :: a -> [Rose a] -> Rose a
+
 -- ===================================
 -- Ex. 0-2
 -- ===================================
