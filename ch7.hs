@@ -43,11 +43,15 @@ ex1comp f p = map f . filter p
 al :: (a -> Bool) -> [a] -> Bool
 al _ [] = True
 al p (x:xs) = (p x) && al p xs
--- not quite right! al p = foldr (&&) True
+-- Using foldr:
+-- 1) al = \p -> \xs -> foldr (&&) True (map p xs)
+-- 2) al = \p -> \xs -> foldr (&&) True $ map p xs
 
 ay :: (a -> Bool) -> [a] -> Bool
 ay _ [] = False
 ay p (x:xs) = (p x) || ay p xs
+-- Using foldr:
+-- ay = \p -> \xs -> foldr (||) False $ map p xs
 
 tw :: (a -> Bool) -> [a] -> [a]
 tw _ [] = []
@@ -116,7 +120,7 @@ all3 p = and . map p
 
 all4 p = not . any (not . p)
 
--- all5 p = map p . and 
+-- all5 p = map p . and
 
 all6 p xs = foldl (&&) True (map p xs)
 

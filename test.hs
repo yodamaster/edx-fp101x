@@ -261,7 +261,7 @@ riffle4 xs ys = [x : [y] | x <- xs, y <- ys]
 divides :: Int -> Int -> Bool
 divides a b = a `mod` b == 0
 
-divisors :: Int -> [Int] 
+divisors :: Int -> [Int]
 divisors x = [d | d <- [1 .. x], x `divides` d]
 
 second xs = head (tail xs)
@@ -386,3 +386,5 @@ inc = map (+1)
 sqr :: [Int] -> [Int]
 sqr = map (^2)
 
+nrnext :: Double -> Double -> Double
+nrnext n x = (x + n/x) / 2
